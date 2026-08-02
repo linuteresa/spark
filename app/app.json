@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Spark",
+    "slug": "spark",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "edu.spark.app"
+    },
+    "android": {
+      "package": "edu.spark.app"
+    }
+  }
+}
+
