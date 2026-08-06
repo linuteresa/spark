@@ -35,5 +35,9 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/restrict_signup_to_umd_domain"
+
 [analytics]
 enabled = false
