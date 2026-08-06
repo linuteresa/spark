@@ -73,7 +73,7 @@ Feed screen and a six-screen onboarding flow. The current MVP instead:
 
 | Entity | Status | Notes |
 |---|---|---|
-| `companion_state` | Deferred | Living Companion. No screen or acceptance criterion in this MVP depends on it (`0008_deferred_entities.sql`). |
+| `companion_state` | Deferred | Living Companion. No screen or acceptance criterion in this MVP depends on it (`supabase/migrations/*_deferred_entities.sql`). |
 | `buddy_pairing` | Pending | Accountability Buddy System Should-Have vs Must-Have is still an open team decision; table exists so that decision doesn't block on a schema change. |
 | `push_token` / `campus_event` | Schema ready | Token storage and event calendar exist; no dispatch function sends a push yet. |
 
@@ -84,6 +84,6 @@ Feed screen and a six-screen onboarding flow. The current MVP instead:
   `auth.uid()`, or through the `complete_assignment` / `reflect_assignment`
   / `skip_assignment` SECURITY DEFINER functions — never a raw client-side
   `update` on `challenge_assignment`, `streak`, or `points_ledger` (see
-  `supabase/migrations/0009_functions.sql`).
+  `supabase/migrations/*_functions.sql`).
 - Reads that back a tab's opening screen (Recharge, Points) are single
   round trips by design.

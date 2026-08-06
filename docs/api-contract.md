@@ -15,7 +15,7 @@ the schema is `supabase/migrations/`; this document maps each screen in the
 | `supabase.from('profiles').insert({ id, school_id, email })` | Runs once, on first login only. |
 
 **Server-side enforcement:** the `restrict_signup_to_umd_domain()` Auth Hook
-(`0011_auth_hook_domain_restriction.sql`) rejects any signup whose email
+(`supabase/migrations/*_auth_hook_domain_restriction.sql`) rejects any signup whose email
 isn't `@umd.edu`, before the `auth.users` row is even created. This is the
 actual enforcement point — the `hd` param above is not. Registered for
 local dev in `supabase/config.toml`; must also be enabled from the hosted
