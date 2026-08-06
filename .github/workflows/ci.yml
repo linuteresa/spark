@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Boots the full local stack (Postgres + Auth + Storage) in Docker so
+      # migrations that reference auth.users (profiles, buddy_pairing, ...)
+      # validate against a real auth schema, not a stub.
+      - run: supabase start
+      # Reapplies every migration in supabase/migrations from a clean
+      # database and loads supabase/seed.sql -- fails the job on the first
+      # SQL error, which is the "migration validation" this job exists for.
+      - run: supabase db reset
