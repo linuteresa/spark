@@ -17,3 +17,17 @@ Spark is a wellness app for University of Maryland students: check in with how y
 supabase start
 supabase db reset
 ```
+
+## Versioning
+
+Every migration set actually pushed to the hosted Supabase project
+(`supabase db push`) gets a tag on `main`: `vMAJOR.MINOR.PATCH`. Bump PATCH
+for additive migrations (new column, new function), MINOR for a new table
+or a breaking RLS/policy change, MAJOR only for a schema reset. The tag
+marks what's live in production at that point — if something needs a
+rollback, it's `git checkout <tag>` and `supabase db push` from there.
+
+```
+git tag -a v0.1.0 -m "Migrations 0001-0011: core loop + notifications + UMD signup hook"
+git push origin v0.1.0
+```
