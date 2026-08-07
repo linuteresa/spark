@@ -41,7 +41,7 @@ begin
   -- Only a genuine service_role caller (seed scripts, an eventual nightly
   -- job) may act on someone else's assignment; every other caller,
   -- including one with no session at all, must own the row.
-  if v_caller_role <> 'service_role' and v_user_id <> auth.uid() then
+  if v_caller_role <> 'service_role' and v_user_id is distinct from auth.uid() then
     raise exception 'not authorized to complete this assignment';
   end if;
 
