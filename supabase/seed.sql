@@ -114,6 +114,8 @@ insert into user_focus (user_id, focus_area_id, weight, source) values
 insert into check_in (user_id, emotion, intensity, context) values
   ('11111111-1111-1111-1111-111111111111', 'anxious', 3, 'class');
 
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+
 with demo_challenge as (
   select id from challenges where title = 'Name five things you can see' limit 1
 ), demo_assignment as (
@@ -122,9 +124,8 @@ with demo_challenge as (
   returning id
 )
 select complete_assignment(id) from demo_assignment;
--- Seeding runs as the service role (no JWT, auth.uid() is null), which the
--- function's ownership check trusts like any other service-role write --
--- see the comment on complete_assignment() in 0009_functions.sql.
+-- Seed scripts don't run through PostgREST, so request.jwt.claims is set
+-- explicitly above to match a service-role call for this RPC.
 
 -- Sample feed post + reaction (Amara posts, Devon reacts)
 with demo_post as (
@@ -134,4 +135,3 @@ with demo_post as (
 )
 insert into feed_reaction (post_id, user_id, reaction_type)
 select id, '22222222-2222-2222-2222-222222222222', 'support' from demo_post;
-
