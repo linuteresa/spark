@@ -59,6 +59,7 @@ export interface ChallengeAssignment {
   completed_at: string | null;
   skipped_at: string | null;
   created_at: string;
+  ai_note: string | null;
   action_matrix: ActionMatrixEntry | null;
 }
 
