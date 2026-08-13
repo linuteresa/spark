@@ -22,7 +22,8 @@ insert into focus_areas (id, parent_id, slug, label) values
   ('0a862f6f-e7da-5e6b-b83b-18c267245935', '177aa4b6-01a7-5c70-b3b3-3b018f3cfc41', 'decision-paralysis', 'Decision paralysis'),
   ('b4c6e8df-b82d-5a36-9d56-0d3cc113fe70', '177aa4b6-01a7-5c70-b3b3-3b018f3cfc41', 'emotional-numbness', 'Emotional numbness'),
   ('3d9018f4-0b78-56f0-9596-c62e91805c69', '177aa4b6-01a7-5c70-b3b3-3b018f3cfc41', 'low-self-efficacy', 'Low self-efficacy'),
-  ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', '177aa4b6-01a7-5c70-b3b3-3b018f3cfc41', 'passive-screen-dependency', 'Passive screen dependency');
+  ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', '177aa4b6-01a7-5c70-b3b3-3b018f3cfc41', 'passive-screen-dependency', 'Passive screen dependency')
+on conflict (id) do nothing;
 
 -- Challenge catalog
 insert into challenges (focus_area_id, kind, rung, title, description, duration_minutes, needs_buddy, reviewed_by) values
