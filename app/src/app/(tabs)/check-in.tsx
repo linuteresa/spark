@@ -29,14 +29,16 @@ export default function CheckInScreen() {
     setSubmitting(true);
     setError(null);
     try {
-      const { error: rpcError } = await supabase.rpc('submit_check_in_and_assign', {
-        p_emotion: emotion,
-        p_intensity: energyLevel,
-        p_energy_level: energyLevel,
-        p_pillar: pillar,
-        p_substressor_code: substressorCode,
+      const { error: fnError } = await supabase.functions.invoke('checkin-ai-note', {
+        body: {
+          emotion,
+          intensity: energyLevel,
+          energy_level: energyLevel,
+          pillar,
+          substressor_code: substressorCode,
+        },
       });
-      if (rpcError) throw rpcError;
+      if (fnError) throw fnError;
 
       setStep('mood');
       setEmotion(null);

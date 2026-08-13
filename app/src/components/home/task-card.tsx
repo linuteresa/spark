@@ -31,6 +31,11 @@ export function TaskCard({ assignment, onComplete, completing }: TaskCardProps) 
       <ThemedText type="smallBold">
         {isDone ? 'Today\'s task, done!' : "Let's finish your task!"}
       </ThemedText>
+      {assignment.ai_note && (
+        <ThemedText type="small" themeColor="textSecondary" style={styles.aiNote}>
+          {assignment.ai_note}
+        </ThemedText>
+      )}
       <ThemedText type="default">{assignment.action_matrix.action_text}</ThemedText>
       {!isDone && (
         <Button label="Mark complete" onPress={onComplete} loading={completing} color={HomeTheme.accent} />
@@ -48,5 +53,8 @@ const styles = StyleSheet.create({
   },
   done: {
     color: '#1a7f37',
+  },
+  aiNote: {
+    fontStyle: 'italic',
   },
 });
