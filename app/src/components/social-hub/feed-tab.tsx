@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { CommentSection } from '@/components/social-hub/comment-section';
@@ -68,7 +68,11 @@ function ReactionBar({
   );
 }
 
-export function FeedTab() {
+export interface FeedTabHandle {
+  refresh: () => Promise<void>;
+}
+
+export const FeedTab = forwardRef<FeedTabHandle>(function FeedTab(_props, ref) {
   const { session, profile } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [reactionsByPost, setReactionsByPost] = useState<Record<string, FeedReaction[]>>({});
@@ -118,8 +122,8 @@ export function FeedTab() {
     setCommentsByPost((prev) => ({ ...prev, [postId]: (commentData as FeedComment[]) ?? [] }));
   }
 
-  async function load() {
-    setLoading(true);
+  async function load(silent = false) {
+    if (!silent) setLoading(true);
     const { data: postData } = await supabase
       .from('feed_post')
       .select('*, profiles(display_name, email)')
@@ -130,8 +134,12 @@ export function FeedTab() {
     setPosts(list);
     setHasMore(list.length === PAGE_SIZE);
     await loadExtrasFor(list, 'replace');
-    setLoading(false);
+    if (!silent) setLoading(false);
   }
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => load(true),
+  }));
 
   async function loadMore() {
     if (!hasMore || loadingMore) return;
@@ -250,7 +258,7 @@ export function FeedTab() {
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
