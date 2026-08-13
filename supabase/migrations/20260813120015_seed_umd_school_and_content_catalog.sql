@@ -1,13 +1,18 @@
--- Sample data: one campus, the full focus-area taxonomy, forty challenges
--- across all three kinds, and five test accounts -- one of which (Amara) has
--- a completed check-in through reflection so the full loop is demoable
--- without any additional setup. Local/dev use only; never run against a
--- production project.
+-- Production content seed. Unlike supabase/seed.sql (explicitly local/dev
+-- only -- it creates fake auth.users), this is real catalog data: the UMD
+-- school row and the team-authored focus_areas/challenges taxonomy ported
+-- verbatim from seed.sql. No student data. Idempotent via the id checks
+-- below so this is safe to run more than once.
+--
+-- One school row for 'umd.edu' covers both @umd.edu and @terpmail.umd.edu
+-- signups -- the client normalizes the email domain to the base 'umd.edu'
+-- before this lookup (see app/src/lib/auth-context.tsx), same logic the
+-- signup hook already uses to treat both as one UMD community.
 
-insert into schools (id, name, email_domain, timezone) values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'State University (Demo)', 'demo.spark.edu', 'America/New_York');
+insert into schools (id, name, email_domain, timezone)
+select 'b3f6a4b0-3b90-4d7e-9d2a-6f7f8a1c9e10', 'University of Maryland', 'umd.edu', 'America/New_York'
+where not exists (select 1 from schools where email_domain = 'umd.edu');
 
--- Focus-area taxonomy
 insert into focus_areas (id, parent_id, slug, label) values
   ('1a4b9f67-4e07-5cc3-a66a-7da48b6792bf', null, 'social-anxiety', 'Social anxiety'),
   ('2d0a4be5-a0fc-5bf7-82d0-6d6cce05f75c', '1a4b9f67-4e07-5cc3-a66a-7da48b6792bf', 'hyper-awareness', 'Hyper-awareness'),
@@ -25,7 +30,6 @@ insert into focus_areas (id, parent_id, slug, label) values
   ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', '177aa4b6-01a7-5c70-b3b3-3b018f3cfc41', 'passive-screen-dependency', 'Passive screen dependency')
 on conflict (id) do nothing;
 
--- Challenge catalog
 insert into challenges (focus_area_id, kind, rung, title, description, duration_minutes, needs_buddy, reviewed_by) values
   ('2d0a4be5-a0fc-5bf7-82d0-6d6cce05f75c', 'solo_reset', 1, 'Box breathing, four rounds', 'Inhale 4, hold 4, exhale 4, hold 4 -- four times, anywhere you''re sitting right now.', 3, false, 'counseling-review-pending'),
   ('2d0a4be5-a0fc-5bf7-82d0-6d6cce05f75c', 'solo_reset', 1, 'Name five things you can see', 'A quick grounding scan of the room to step out of your head and into the space around you.', 3, false, 'counseling-review-pending'),
@@ -66,73 +70,5 @@ insert into challenges (focus_area_id, kind, rung, title, description, duration_
   ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', 'solo_reset', 1, 'Put your phone in another room for ten minutes', 'A short, deliberate break from passive scrolling.', 10, false, 'counseling-review-pending'),
   ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', 'solo_reset', 2, 'Go for a walk with your phone in your pocket', 'Movement without the screen as a companion.', 15, false, 'counseling-review-pending'),
   ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', 'irl_challenge', 2, 'Do one offline hobby for fifteen minutes', 'Draw, read on paper, cook -- anything without a screen.', 15, false, 'counseling-review-pending'),
-  ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', 'community_moment', 2, 'Call instead of texting someone today', 'Trade a passive channel for a synchronous one, just once.', 10, true, 'counseling-review-pending');
-
--- Test accounts. Password for all five is 'sparkdemo123' (local/dev only).
--- confirmation_token / recovery_token / email_change* are set to '' rather
--- than left null: GoTrue (Supabase Auth) expects non-null strings there,
--- a known gotcha when seeding auth.users directly.
-insert into auth.users (
-  id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
-  created_at, updated_at, raw_app_meta_data, raw_user_meta_data,
-  confirmation_token, recovery_token, email_change, email_change_token_new
-)
-select
-  u.id::uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', u.email,
-  crypt('sparkdemo123', gen_salt('bf')), now(), now(), now(),
-  '{"provider":"email","providers":["email"]}', '{}',
-  '', '', '', ''
-from (values
-  ('11111111-1111-1111-1111-111111111111', 'amara@demo.spark.edu'),
-  ('22222222-2222-2222-2222-222222222222', 'devon@demo.spark.edu'),
-  ('33333333-3333-3333-3333-333333333333', 'priya@demo.spark.edu'),
-  ('44444444-4444-4444-4444-444444444444', 'malik@demo.spark.edu'),
-  ('55555555-5555-5555-5555-555555555555', 'yuki@demo.spark.edu')
-) as u(id, email);
-
-insert into profiles (id, school_id, email, display_name, social_energy, feed_opt_out, buddy_opt_in) values
-  ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'amara@demo.spark.edu', 'Amara', 4, false, true),
-  ('22222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'devon@demo.spark.edu', 'Devon', 2, false, true),
-  ('33333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'priya@demo.spark.edu', 'Priya', 3, false, true),
-  ('44444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'malik@demo.spark.edu', 'Malik', 5, false, true),
-  ('55555555-5555-5555-5555-555555555555', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'yuki@demo.spark.edu', 'Yuki', 1, false, true);
-
--- Onboarding-weighted focus areas (one representative pair per test account)
-insert into user_focus (user_id, focus_area_id, weight, source) values
-  ('11111111-1111-1111-1111-111111111111', '2d0a4be5-a0fc-5bf7-82d0-6d6cce05f75c', 2.0, 'onboarding'),
-  ('11111111-1111-1111-1111-111111111111', '399e56a7-f08c-5119-8abc-3bb0f72fadf3', 1.0, 'onboarding'),
-  ('22222222-2222-2222-2222-222222222222', 'c3e612a3-01d8-578e-9a22-ad5371a6570a', 2.0, 'onboarding'),
-  ('22222222-2222-2222-2222-222222222222', '2b267cee-c5b3-505f-bd51-65fb555ba6ec', 1.0, 'onboarding'),
-  ('33333333-3333-3333-3333-333333333333', '0a862f6f-e7da-5e6b-b83b-18c267245935', 2.0, 'onboarding'),
-  ('33333333-3333-3333-3333-333333333333', '3d9018f4-0b78-56f0-9596-c62e91805c69', 1.0, 'onboarding'),
-  ('44444444-4444-4444-4444-444444444444', '105c8981-331b-5f7d-bb56-7f3a04b8ca3d', 2.0, 'onboarding'),
-  ('44444444-4444-4444-4444-444444444444', '212e4a2c-5c94-548a-b27b-d7e172c332cc', 1.0, 'onboarding'),
-  ('55555555-5555-5555-5555-555555555555', 'b4c6e8df-b82d-5a36-9d56-0d3cc113fe70', 2.0, 'onboarding'),
-  ('55555555-5555-5555-5555-555555555555', 'd7b2390a-cdc8-5695-82d1-39ce0ef7eb7b', 1.0, 'onboarding');
-
--- Full-loop demo data for Amara: a check-in routed to an assignment she
--- has already completed and reflected on, so Points & Streak has data to show.
-insert into check_in (user_id, emotion, intensity, context) values
-  ('11111111-1111-1111-1111-111111111111', 'anxious', 3, 'class');
-
-select set_config('request.jwt.claims', '{"role":"service_role"}', true);
-
-with demo_challenge as (
-  select id from challenges where title = 'Name five things you can see' limit 1
-), demo_assignment as (
-  insert into challenge_assignment (user_id, challenge_id, for_date, rank, reason)
-  select '11111111-1111-1111-1111-111111111111', id, current_date, 1, 'Matches your check-in and your focus areas.' from demo_challenge
-  returning id
-)
-select complete_assignment(id) from demo_assignment;
--- Seed scripts don't run through PostgREST, so request.jwt.claims is set
--- explicitly above to match a service-role call for this RPC.
-
--- Sample feed post + reaction (Amara posts, Devon reacts)
-with demo_post as (
-  insert into feed_post (user_id, school_id, body)
-  values ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Did the five-things grounding exercise between classes today. Small win.')
-  returning id
-)
-insert into feed_reaction (post_id, user_id, reaction_type)
-select id, '22222222-2222-2222-2222-222222222222', 'support' from demo_post;
+  ('2b267cee-c5b3-505f-bd51-65fb555ba6ec', 'community_moment', 2, 'Call instead of texting someone today', 'Trade a passive channel for a synchronous one, just once.', 10, true, 'counseling-review-pending')
+on conflict do nothing;
