@@ -85,6 +85,15 @@ export interface FeedPost {
   profiles: { display_name: string | null; email: string } | null;
 }
 
+export interface FeedComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  profiles: { display_name: string | null; email: string } | null;
+}
+
 export interface FeedReaction {
   id: string;
   post_id: string;
