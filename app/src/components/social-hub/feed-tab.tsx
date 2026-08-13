@@ -10,6 +10,8 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { REACTIONS, type FeedComment, type FeedPost, type FeedReaction, type ReactionType } from '@/lib/types';
 
+const PAGE_SIZE = 10;
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
@@ -72,9 +74,49 @@ export function FeedTab() {
   const [reactionsByPost, setReactionsByPost] = useState<Record<string, FeedReaction[]>>({});
   const [commentsByPost, setCommentsByPost] = useState<Record<string, FeedComment[]>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [composing, setComposing] = useState(false);
   const [body, setBody] = useState('');
   const [posting, setPosting] = useState(false);
+
+  async function loadExtrasFor(list: FeedPost[], mode: 'replace' | 'merge') {
+    if (list.length === 0) return;
+    const postIds = list.map((p) => p.id);
+    const [{ data: reactionData }, { data: commentData }] = await Promise.all([
+      supabase.from('feed_reaction').select('*').in('post_id', postIds),
+      supabase
+        .from('feed_comment')
+        .select('*, profiles(display_name, email)')
+        .in('post_id', postIds)
+        .order('created_at', { ascending: true }),
+    ]);
+
+    const groupedReactions: Record<string, FeedReaction[]> = {};
+    for (const r of (reactionData as FeedReaction[]) ?? []) {
+      groupedReactions[r.post_id] = groupedReactions[r.post_id] ? [...groupedReactions[r.post_id], r] : [r];
+    }
+    setReactionsByPost((prev) => (mode === 'merge' ? { ...prev, ...groupedReactions } : groupedReactions));
+
+    const groupedComments: Record<string, FeedComment[]> = {};
+    for (const c of (commentData as FeedComment[]) ?? []) {
+      groupedComments[c.post_id] = groupedComments[c.post_id] ? [...groupedComments[c.post_id], c] : [c];
+    }
+    setCommentsByPost((prev) => (mode === 'merge' ? { ...prev, ...groupedComments } : groupedComments));
+  }
+
+  async function refreshExtrasFor(postId: string) {
+    const [{ data: reactionData }, { data: commentData }] = await Promise.all([
+      supabase.from('feed_reaction').select('*').eq('post_id', postId),
+      supabase
+        .from('feed_comment')
+        .select('*, profiles(display_name, email)')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true }),
+    ]);
+    setReactionsByPost((prev) => ({ ...prev, [postId]: (reactionData as FeedReaction[]) ?? [] }));
+    setCommentsByPost((prev) => ({ ...prev, [postId]: (commentData as FeedComment[]) ?? [] }));
+  }
 
   async function load() {
     setLoading(true);
@@ -82,35 +124,29 @@ export function FeedTab() {
       .from('feed_post')
       .select('*, profiles(display_name, email)')
       .order('created_at', { ascending: false })
-      .limit(30);
+      .range(0, PAGE_SIZE - 1);
 
     const list = (postData as FeedPost[]) ?? [];
     setPosts(list);
-
-    if (list.length > 0) {
-      const postIds = list.map((p) => p.id);
-      const [{ data: reactionData }, { data: commentData }] = await Promise.all([
-        supabase.from('feed_reaction').select('*').in('post_id', postIds),
-        supabase
-          .from('feed_comment')
-          .select('*, profiles(display_name, email)')
-          .in('post_id', postIds)
-          .order('created_at', { ascending: true }),
-      ]);
-
-      const groupedReactions: Record<string, FeedReaction[]> = {};
-      for (const r of (reactionData as FeedReaction[]) ?? []) {
-        groupedReactions[r.post_id] = groupedReactions[r.post_id] ? [...groupedReactions[r.post_id], r] : [r];
-      }
-      setReactionsByPost(groupedReactions);
-
-      const groupedComments: Record<string, FeedComment[]> = {};
-      for (const c of (commentData as FeedComment[]) ?? []) {
-        groupedComments[c.post_id] = groupedComments[c.post_id] ? [...groupedComments[c.post_id], c] : [c];
-      }
-      setCommentsByPost(groupedComments);
-    }
+    setHasMore(list.length === PAGE_SIZE);
+    await loadExtrasFor(list, 'replace');
     setLoading(false);
+  }
+
+  async function loadMore() {
+    if (!hasMore || loadingMore) return;
+    setLoadingMore(true);
+    const { data: postData } = await supabase
+      .from('feed_post')
+      .select('*, profiles(display_name, email)')
+      .order('created_at', { ascending: false })
+      .range(posts.length, posts.length + PAGE_SIZE - 1);
+
+    const list = (postData as FeedPost[]) ?? [];
+    setPosts((prev) => [...prev, ...list]);
+    setHasMore(list.length === PAGE_SIZE);
+    await loadExtrasFor(list, 'merge');
+    setLoadingMore(false);
   }
 
   useEffect(() => {
@@ -190,18 +226,28 @@ export function FeedTab() {
                 postId={post.id}
                 reactions={reactionsByPost[post.id] ?? []}
                 myUserId={session.user.id}
-                onChanged={load}
+                onChanged={() => refreshExtrasFor(post.id)}
               />
               <CommentSection
                 postId={post.id}
                 comments={commentsByPost[post.id] ?? []}
                 myUserId={session.user.id}
-                onChanged={load}
+                onChanged={() => refreshExtrasFor(post.id)}
               />
             </>
           )}
         </View>
       ))}
+
+      {!loading && hasMore && (
+        <Button
+          label={loadingMore ? 'Loading…' : 'Load more'}
+          onPress={loadMore}
+          loading={loadingMore}
+          variant="outline"
+          color={SocialTheme.accent}
+        />
+      )}
     </View>
   );
 }
