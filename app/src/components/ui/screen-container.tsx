@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, View, type ViewProps } from 'react-native';
+import type { ReactElement } from 'react';
+import { ScrollView, StyleSheet, View, type RefreshControlProps, type ViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Spacing } from '@/constants/theme';
@@ -6,11 +7,13 @@ import { Spacing } from '@/constants/theme';
 interface ScreenContainerProps extends ViewProps {
   backgroundColor?: string;
   scroll?: boolean;
+  refreshControl?: ReactElement<RefreshControlProps>;
 }
 
 export function ScreenContainer({
   backgroundColor = '#FFFFFF',
   scroll = true,
+  refreshControl,
   children,
   style,
   ...rest
@@ -18,7 +21,10 @@ export function ScreenContainer({
   if (scroll) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor }]}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, style]} {...rest}>
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, style]}
+          refreshControl={refreshControl}
+          {...rest}>
           {children}
         </ScrollView>
       </SafeAreaView>

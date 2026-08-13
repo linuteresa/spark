@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { EventsTab } from '@/components/social-hub/events-tab';
-import { FeedTab } from '@/components/social-hub/feed-tab';
+import { FeedTab, type FeedTabHandle } from '@/components/social-hub/feed-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ScreenContainer } from '@/components/ui/screen-container';
 import { SocialTheme } from '@/constants/palette';
@@ -12,9 +12,23 @@ type SocialView = 'feed' | 'events';
 
 export default function SocialHubScreen() {
   const [view, setView] = useState<SocialView>('feed');
+  const [refreshing, setRefreshing] = useState(false);
+  const feedRef = useRef<FeedTabHandle>(null);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await feedRef.current?.refresh();
+    setRefreshing(false);
+  }
 
   return (
-    <ScreenContainer backgroundColor={SocialTheme.background}>
+    <ScreenContainer
+      backgroundColor={SocialTheme.background}
+      refreshControl={
+        view === 'feed' ? (
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={SocialTheme.accent} />
+        ) : undefined
+      }>
       <View style={styles.toggleRow}>
         <Pressable
           onPress={() => setView('feed')}
@@ -34,7 +48,7 @@ export default function SocialHubScreen() {
         </Pressable>
       </View>
 
-      {view === 'feed' ? <FeedTab /> : <EventsTab />}
+      {view === 'feed' ? <FeedTab ref={feedRef} /> : <EventsTab />}
     </ScreenContainer>
   );
 }
