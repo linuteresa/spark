@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { CommentSection } from '@/components/social-hub/comment-section';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { SocialTheme } from '@/constants/palette';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { REACTIONS, type FeedPost, type FeedReaction, type ReactionType } from '@/lib/types';
+import { REACTIONS, type FeedComment, type FeedPost, type FeedReaction, type ReactionType } from '@/lib/types';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -69,6 +70,7 @@ export function FeedTab() {
   const { session, profile } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [reactionsByPost, setReactionsByPost] = useState<Record<string, FeedReaction[]>>({});
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, FeedComment[]>>({});
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [body, setBody] = useState('');
@@ -86,15 +88,27 @@ export function FeedTab() {
     setPosts(list);
 
     if (list.length > 0) {
-      const { data: reactionData } = await supabase
-        .from('feed_reaction')
-        .select('*')
-        .in('post_id', list.map((p) => p.id));
-      const grouped: Record<string, FeedReaction[]> = {};
+      const postIds = list.map((p) => p.id);
+      const [{ data: reactionData }, { data: commentData }] = await Promise.all([
+        supabase.from('feed_reaction').select('*').in('post_id', postIds),
+        supabase
+          .from('feed_comment')
+          .select('*, profiles(display_name, email)')
+          .in('post_id', postIds)
+          .order('created_at', { ascending: true }),
+      ]);
+
+      const groupedReactions: Record<string, FeedReaction[]> = {};
       for (const r of (reactionData as FeedReaction[]) ?? []) {
-        grouped[r.post_id] = grouped[r.post_id] ? [...grouped[r.post_id], r] : [r];
+        groupedReactions[r.post_id] = groupedReactions[r.post_id] ? [...groupedReactions[r.post_id], r] : [r];
       }
-      setReactionsByPost(grouped);
+      setReactionsByPost(groupedReactions);
+
+      const groupedComments: Record<string, FeedComment[]> = {};
+      for (const c of (commentData as FeedComment[]) ?? []) {
+        groupedComments[c.post_id] = groupedComments[c.post_id] ? [...groupedComments[c.post_id], c] : [c];
+      }
+      setCommentsByPost(groupedComments);
     }
     setLoading(false);
   }
@@ -171,12 +185,20 @@ export function FeedTab() {
           </ThemedText>
           {post.body && <ThemedText type="default">{post.body}</ThemedText>}
           {session && (
-            <ReactionBar
-              postId={post.id}
-              reactions={reactionsByPost[post.id] ?? []}
-              myUserId={session.user.id}
-              onChanged={load}
-            />
+            <>
+              <ReactionBar
+                postId={post.id}
+                reactions={reactionsByPost[post.id] ?? []}
+                myUserId={session.user.id}
+                onChanged={load}
+              />
+              <CommentSection
+                postId={post.id}
+                comments={commentsByPost[post.id] ?? []}
+                myUserId={session.user.id}
+                onChanged={load}
+              />
+            </>
           )}
         </View>
       ))}
