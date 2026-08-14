@@ -48,17 +48,24 @@ export function EmotionWheel({ value, onChange }: EmotionWheelProps) {
   const selected = selectedIndex >= 0 ? EMOTIONS[selectedIndex] : undefined;
   const knobAngle = selectedIndex >= 0 ? angleForIndex(selectedIndex, EMOTIONS.length) : 90;
 
+  function selectFromPoint(x: number, y: number) {
+    const dx = x - originRef.current.x - RADIUS;
+    const dy = y - originRef.current.y - RADIUS;
+    const angleDeg = (Math.atan2(-dy, dx) * 180) / Math.PI;
+    const index = indexForAngle(angleDeg, EMOTIONS.length);
+    onChangeRef.current(EMOTIONS[index].value);
+  }
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => setDragging(true),
+      onPanResponderGrant: (_evt, gesture) => {
+        setDragging(true);
+        selectFromPoint(gesture.x0, gesture.y0);
+      },
       onPanResponderMove: (_evt, gesture) => {
-        const dx = gesture.moveX - originRef.current.x - RADIUS;
-        const dy = gesture.moveY - originRef.current.y - RADIUS;
-        const angleDeg = (Math.atan2(-dy, dx) * 180) / Math.PI;
-        const index = indexForAngle(angleDeg, EMOTIONS.length);
-        onChangeRef.current(EMOTIONS[index].value);
+        selectFromPoint(gesture.moveX, gesture.moveY);
       },
       onPanResponderRelease: () => setDragging(false),
       onPanResponderTerminate: () => setDragging(false),
@@ -76,6 +83,7 @@ export function EmotionWheel({ value, onChange }: EmotionWheelProps) {
       <View
         ref={containerRef}
         onLayout={handleLayout}
+        {...panResponder.panHandlers}
         style={[styles.wheelWrap, { width: WHEEL_WIDTH, height: WHEEL_HEIGHT }]}>
         <Image
           source={require('@/assets/images/emotions/wheel.png')}
@@ -96,7 +104,7 @@ export function EmotionWheel({ value, onChange }: EmotionWheelProps) {
 
         {value && (
           <View
-            {...panResponder.panHandlers}
+            pointerEvents="none"
             style={[
               styles.knob,
               positionFor(knobAngle, ICON_ARC_RADIUS, KNOB_SIZE),
