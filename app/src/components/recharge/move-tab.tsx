@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { MoveAnimation, type MoveKind } from '@/components/recharge/move-animation';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { RechargeTheme } from '@/constants/palette';
@@ -8,15 +9,16 @@ import { Spacing } from '@/constants/theme';
 
 interface MovePrompt {
   id: string;
+  kind: MoveKind;
   label: string;
   seconds: number;
 }
 
 const PROMPTS: MovePrompt[] = [
-  { id: 'stretch', label: 'Stand and stretch your arms overhead', seconds: 60 },
-  { id: 'shoulders', label: 'Roll your shoulders and neck slowly', seconds: 45 },
-  { id: 'walk', label: 'Walk to the nearest window and back', seconds: 90 },
-  { id: 'shake', label: 'Shake out your hands and legs', seconds: 30 },
+  { id: 'stretch', kind: 'stretch', label: 'Stand and stretch your arms overhead', seconds: 60 },
+  { id: 'shoulders', kind: 'shoulders', label: 'Roll your shoulders and neck slowly', seconds: 45 },
+  { id: 'walk', kind: 'walk', label: 'Walk to the nearest window and back', seconds: 90 },
+  { id: 'shake', kind: 'shake', label: 'Shake out your hands and legs', seconds: 30 },
 ];
 
 function CountdownTimer({ prompt, onExit }: { prompt: MovePrompt; onExit: () => void }) {
@@ -30,6 +32,7 @@ function CountdownTimer({ prompt, onExit }: { prompt: MovePrompt; onExit: () => 
 
   return (
     <View style={styles.timerContainer}>
+      <MoveAnimation kind={prompt.kind} size={160} />
       <ThemedText type="title">{remaining}s</ThemedText>
       <ThemedText type="default" style={styles.timerLabel}>
         {prompt.label}
@@ -53,10 +56,13 @@ export function MoveTab() {
           key={prompt.id}
           onPress={() => setActive(prompt)}
           style={[styles.card, { backgroundColor: RechargeTheme.card }]}>
-          <ThemedText type="smallBold">{prompt.label}</ThemedText>
-          <ThemedText type="small" style={{ color: RechargeTheme.textSecondary }}>
-            {prompt.seconds}s
-          </ThemedText>
+          <MoveAnimation kind={prompt.kind} size={56} />
+          <View style={styles.cardText}>
+            <ThemedText type="smallBold">{prompt.label}</ThemedText>
+            <ThemedText type="small" style={{ color: RechargeTheme.textSecondary }}>
+              {prompt.seconds}s
+            </ThemedText>
+          </View>
         </Pressable>
       ))}
     </View>
@@ -68,8 +74,14 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
     borderRadius: Spacing.four,
-    padding: Spacing.four,
+    padding: Spacing.three,
+  },
+  cardText: {
+    flex: 1,
     gap: Spacing.one,
   },
   timerContainer: {
