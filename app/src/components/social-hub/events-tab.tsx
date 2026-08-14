@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -10,12 +10,18 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import type { EventKind, StudentEvent } from '@/lib/types';
 
+const PAGE_SIZE = 10;
+
 function formatDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   });
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function CreateEventForm({ onDone }: { onDone: () => void }) {
@@ -94,30 +100,59 @@ function CreateEventForm({ onDone }: { onDone: () => void }) {
   );
 }
 
-export function EventsTab() {
+export interface EventsTabHandle {
+  refresh: () => Promise<void>;
+}
+
+export const EventsTab = forwardRef<EventsTabHandle>(function EventsTab(_props, ref) {
   const { session } = useAuth();
   const [events, setEvents] = useState<StudentEvent[]>([]);
   const [attending, setAttending] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
 
-  async function load() {
-    setLoading(true);
+  async function loadAttending() {
+    if (!session) return;
+    const { data: mine } = await supabase
+      .from('student_event_attendee')
+      .select('event_id')
+      .eq('user_id', session.user.id);
+    setAttending(new Set((mine ?? []).map((r) => r.event_id)));
+  }
+
+  async function load(silent = false) {
+    if (!silent) setLoading(true);
     const { data } = await supabase
       .from('student_event')
       .select('*')
-      .order('event_date', { ascending: true });
-    setEvents((data as StudentEvent[]) ?? []);
+      .order('event_date', { ascending: true })
+      .range(0, PAGE_SIZE - 1);
+    const list = (data as StudentEvent[]) ?? [];
+    setEvents(list);
+    setHasMore(list.length === PAGE_SIZE);
+    await loadAttending();
+    if (!silent) setLoading(false);
+  }
 
-    if (session) {
-      const { data: mine } = await supabase
-        .from('student_event_attendee')
-        .select('event_id')
-        .eq('user_id', session.user.id);
-      setAttending(new Set((mine ?? []).map((r) => r.event_id)));
-    }
-    setLoading(false);
+  useImperativeHandle(ref, () => ({
+    refresh: () => load(true),
+  }));
+
+  async function loadMore() {
+    if (!hasMore || loadingMore) return;
+    setLoadingMore(true);
+    const { data } = await supabase
+      .from('student_event')
+      .select('*')
+      .order('event_date', { ascending: true })
+      .range(events.length, events.length + PAGE_SIZE - 1);
+    const list = (data as StudentEvent[]) ?? [];
+    setEvents((prev) => [...prev, ...list]);
+    setHasMore(list.length === PAGE_SIZE);
+    setLoadingMore(false);
   }
 
   useEffect(() => {
@@ -131,13 +166,14 @@ export function EventsTab() {
     } else {
       await supabase.from('student_event_attendee').insert({ event_id: eventId, user_id: session.user.id });
     }
-    await load();
+    await loadAttending();
   }
 
   if (creating) {
     return <CreateEventForm onDone={() => { setCreating(false); load(); }} />;
   }
 
+  const today = todayIso();
   const filtered = events.filter((e) => e.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -160,33 +196,52 @@ export function EventsTab() {
 
       {loading && <ActivityIndicator />}
 
-      {filtered.map((event) => (
-        <View key={event.id} style={[styles.eventCard, { backgroundColor: SocialTheme.card }]}>
-          <View style={styles.row}>
-            <ThemedText type="small" style={{ color: SocialTheme.accent }}>
-              {event.kind === 'club' ? 'CLUB' : 'STUDENT'}
-            </ThemedText>
-            <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
-              {formatDate(event.event_date)}
-            </ThemedText>
+      {filtered.map((event) => {
+        const ended = event.event_date < today;
+        return (
+          <View key={event.id} style={[styles.eventCard, { backgroundColor: SocialTheme.card }]}>
+            <View style={styles.row}>
+              <ThemedText type="small" style={{ color: SocialTheme.accent }}>
+                {event.kind === 'club' ? 'CLUB' : 'STUDENT'}
+              </ThemedText>
+              <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
+                {formatDate(event.event_date)}
+              </ThemedText>
+            </View>
+            <ThemedText type="smallBold">{event.title}</ThemedText>
+            {event.about && (
+              <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
+                {event.about}
+              </ThemedText>
+            )}
+            {ended ? (
+              <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
+                Already ended
+              </ThemedText>
+            ) : (
+              <Button
+                label={attending.has(event.id) ? 'Joined ✓' : 'Join'}
+                onPress={() => toggleJoin(event.id)}
+                variant={attending.has(event.id) ? 'outline' : 'solid'}
+                color={SocialTheme.accent}
+              />
+            )}
           </View>
-          <ThemedText type="smallBold">{event.title}</ThemedText>
-          {event.about && (
-            <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
-              {event.about}
-            </ThemedText>
-          )}
-          <Button
-            label={attending.has(event.id) ? 'Joined ✓' : 'Join'}
-            onPress={() => toggleJoin(event.id)}
-            variant={attending.has(event.id) ? 'outline' : 'solid'}
-            color={SocialTheme.accent}
-          />
-        </View>
-      ))}
+        );
+      })}
+
+      {!loading && hasMore && (
+        <Button
+          label={loadingMore ? 'Loading…' : 'Load more'}
+          onPress={loadMore}
+          loading={loadingMore}
+          variant="outline"
+          color={SocialTheme.accent}
+        />
+      )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
