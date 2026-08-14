@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { SelectableOption } from '@/components/check-in/selectable-option';
+import { StepActions } from '@/components/check-in/step-actions';
 import { ThemedText } from '@/components/themed-text';
-import { Button } from '@/components/ui/button';
 import { Spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import type { Pillar, SubStressor } from '@/lib/types';
@@ -50,25 +51,22 @@ export function SubstressorStep({
 
       <View style={styles.list}>
         {options.map((option) => (
-          <Pressable
+          <SelectableOption
             key={option.code}
+            label={option.label}
+            selected={value === option.code}
             onPress={() => onChange(option.code)}
-            style={[styles.row, value === option.code ? styles.rowSelected : styles.rowIdle]}>
-            <ThemedText type="default">{option.label}</ThemedText>
-          </Pressable>
+          />
         ))}
       </View>
 
-      <View style={styles.actions}>
-        <Button label="Back" onPress={onBack} variant="outline" style={styles.flexButton} />
-        <Button
-          label={submitting ? 'Saving…' : "That's it"}
-          onPress={onSubmit}
-          disabled={!value || submitting}
-          loading={submitting}
-          style={styles.flexButton}
-        />
-      </View>
+      <StepActions
+        onBack={onBack}
+        onNext={onSubmit}
+        nextLabel={submitting ? 'Saving…' : "That's it"}
+        nextDisabled={!value || submitting}
+        nextLoading={submitting}
+      />
     </View>
   );
 }
@@ -83,26 +81,5 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: Spacing.two,
-  },
-  row: {
-    borderRadius: Spacing.three,
-    padding: Spacing.three,
-    borderWidth: 2,
-  },
-  rowIdle: {
-    backgroundColor: '#F5F6F8',
-    borderColor: 'transparent',
-  },
-  rowSelected: {
-    backgroundColor: '#EAF1FE',
-    borderColor: '#5B8DEF',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.three,
-    marginTop: Spacing.three,
-  },
-  flexButton: {
-    flex: 1,
   },
 });

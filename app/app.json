@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/spark-logo.png",
     "scheme": "spark",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon"
     },
