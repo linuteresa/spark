@@ -176,6 +176,11 @@ export const FeedTab = forwardRef<FeedTabHandle>(function FeedTab(_props, ref) {
     }
   }
 
+  async function deletePost(postId: string) {
+    await supabase.from('feed_post').delete().eq('id', postId);
+    await load();
+  }
+
   if (profile?.feed_opt_out) {
     return (
       <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
@@ -221,12 +226,23 @@ export const FeedTab = forwardRef<FeedTabHandle>(function FeedTab(_props, ref) {
 
       {posts.map((post) => (
         <View key={post.id} style={[styles.postCard, { backgroundColor: SocialTheme.card }]}>
-          <ThemedText type="smallBold">
-            {post.profiles?.display_name ?? post.profiles?.email ?? 'A student'}
-          </ThemedText>
-          <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
-            {formatDate(post.created_at)}
-          </ThemedText>
+          <View style={styles.postHeaderRow}>
+            <View>
+              <ThemedText type="smallBold">
+                {post.profiles?.display_name ?? post.profiles?.email ?? 'A student'}
+              </ThemedText>
+              <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
+                {formatDate(post.created_at)}
+              </ThemedText>
+            </View>
+            {session?.user.id === post.user_id && (
+              <Pressable onPress={() => deletePost(post.id)} hitSlop={8}>
+                <ThemedText type="small" style={{ color: SocialTheme.textSecondary }}>
+                  Delete
+                </ThemedText>
+              </Pressable>
+            )}
+          </View>
           {post.body && <ThemedText type="default">{post.body}</ThemedText>}
           {session && (
             <>
@@ -284,6 +300,11 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.four,
     padding: Spacing.three,
     gap: Spacing.one,
+  },
+  postHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   reactionRow: {
     flexDirection: 'row',
