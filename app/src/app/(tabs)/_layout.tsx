@@ -1,16 +1,16 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, Text, type ColorValue } from 'react-native';
+import { Image, StyleSheet, type ColorValue, type ImageSourcePropType } from 'react-native';
 
-const ICONS: Record<string, string> = {
-  'check-in': '✓',
-  recharge: '⭐',
-  index: '⌂',
-  'social-hub': '☺',
-  profile: '⏳',
+const ICONS: Record<string, ImageSourcePropType> = {
+  'check-in': require('@/assets/images/nav/check-in.png'),
+  recharge: require('@/assets/images/nav/recharge.png'),
+  index: require('@/assets/images/nav/home.png'),
+  'social-hub': require('@/assets/images/nav/social-hub.png'),
+  profile: require('@/assets/images/nav/profile.png'),
 };
 
 function TabIcon({ route, color }: { route: string; color: ColorValue }) {
-  return <Text style={[styles.icon, { color }]}>{ICONS[route]}</Text>;
+  return <Image source={ICONS[route]} style={[styles.icon, { tintColor: color }]} resizeMode="contain" />;
 }
 
 export default function TabsLayout() {
@@ -48,6 +48,7 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   icon: {
-    fontSize: 20,
+    width: 24,
+    height: 24,
   },
 });
