@@ -19,7 +19,7 @@ function startOfToday(): string {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const [latestCheckIn, setLatestCheckIn] = useState<CheckIn | null>(null);
   const [streak, setStreak] = useState<Streak | null>(null);
   const [pointsToday, setPointsToday] = useState(0);
@@ -111,7 +111,11 @@ export default function HomeScreen() {
 
       {!loading && (
         <>
-          <HeaderBanner emotion={latestCheckIn?.emotion ?? null} streakDays={streak?.current_count ?? 0} />
+          <HeaderBanner
+            emotion={latestCheckIn?.emotion ?? null}
+            streakDays={streak?.current_count ?? 0}
+            avatarLabel={profile?.display_name ?? profile?.email ?? '?'}
+          />
           <PointsCard pointsToday={pointsToday} />
           <TaskCard
             assignment={assignment}

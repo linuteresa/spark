@@ -12,10 +12,10 @@ import { Spacing } from '@/constants/theme';
 
 type Segment = 'breathe' | 'move' | 'journal';
 
-const SEGMENTS: { value: Segment; label: string }[] = [
-  { value: 'breathe', label: 'Breathe' },
-  { value: 'move', label: 'Move' },
-  { value: 'journal', label: 'Journal' },
+const SEGMENTS: { value: Segment; label: string; description: string }[] = [
+  { value: 'breathe', label: 'Breathe', description: 'Slow down with a guided breathing pattern.' },
+  { value: 'move', label: 'Move', description: 'Shake it out with a quick movement break.' },
+  { value: 'journal', label: 'Journal', description: 'Write it out, prompted or freeform.' },
 ];
 
 export default function RechargeScreen() {
@@ -28,17 +28,32 @@ export default function RechargeScreen() {
         RECHARGE
       </ThemedText>
 
-      <View style={styles.segmentedControl}>
-        {SEGMENTS.map((s) => (
-          <Pressable
-            key={s.value}
-            onPress={() => setSegment(s.value)}
-            style={[styles.segment, segment === s.value && styles.segmentActive]}>
-            <ThemedText type="smallBold" style={{ color: RechargeTheme.text }}>
-              {s.label}
-            </ThemedText>
-          </Pressable>
-        ))}
+      <View style={styles.cardList}>
+        {SEGMENTS.map((s, i) => {
+          const isActive = segment === s.value;
+          return (
+            <Pressable
+              key={s.value}
+              onPress={() => setSegment(s.value)}
+              style={[
+                styles.card,
+                { backgroundColor: RechargeTheme.card },
+                isActive && { borderColor: RechargeTheme.accent },
+              ]}>
+              <View style={[styles.badge, { backgroundColor: RechargeTheme.accent }]}>
+                <ThemedText type="smallBold" style={styles.badgeLabel}>
+                  {i + 1}
+                </ThemedText>
+              </View>
+              <View style={styles.cardText}>
+                <ThemedText type="smallBold">{s.label}</ThemedText>
+                <ThemedText type="small" style={{ color: RechargeTheme.textSecondary }}>
+                  {s.description}
+                </ThemedText>
+              </View>
+            </Pressable>
+          );
+        })}
       </View>
 
       {segment === 'breathe' && <BreatheTab />}
@@ -49,20 +64,31 @@ export default function RechargeScreen() {
 }
 
 const styles = StyleSheet.create({
-  segmentedControl: {
+  cardList: {
+    gap: Spacing.three,
+    marginBottom: Spacing.three,
+  },
+  card: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF55',
-    borderRadius: Spacing.five,
-    padding: Spacing.half,
-    marginBottom: Spacing.two,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: Spacing.two,
     alignItems: 'center',
-    borderRadius: Spacing.five,
+    gap: Spacing.three,
+    borderRadius: Spacing.four,
+    padding: Spacing.three,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  segmentActive: {
-    backgroundColor: '#FFFFFF',
+  badge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeLabel: {
+    color: '#FFFFFF',
+  },
+  cardText: {
+    flex: 1,
+    gap: 2,
   },
 });

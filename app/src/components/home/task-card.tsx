@@ -3,7 +3,22 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { HomeTheme } from '@/constants/palette';
 import { Spacing } from '@/constants/theme';
-import { PILLARS, type ChallengeAssignment, type CheckIn } from '@/lib/types';
+import { EMOTIONS, ENERGY_LEVELS, PILLARS, type ChallengeAssignment, type CheckIn } from '@/lib/types';
+
+function Tag({ label }: { label: string }) {
+  return (
+    <View style={styles.tagWrap}>
+      <Image
+        source={require('@/assets/images/home/tag-background.png')}
+        style={StyleSheet.absoluteFill}
+        resizeMode="stretch"
+      />
+      <ThemedText type="small" style={styles.tagText}>
+        {label}
+      </ThemedText>
+    </View>
+  );
+}
 
 interface TaskCardProps {
   assignment: ChallengeAssignment | null;
@@ -25,7 +40,9 @@ export function TaskCard({ assignment, checkIn, onComplete, completing }: TaskCa
   }
 
   const isDone = !!assignment.completed_at;
+  const emotion = checkIn ? EMOTIONS.find((e) => e.value === checkIn.emotion) : undefined;
   const pillar = checkIn ? PILLARS.find((p) => p.value === checkIn.pillar) : undefined;
+  const energy = checkIn ? ENERGY_LEVELS.find((e) => e.value === checkIn.energy_level) : undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: HomeTheme.card }]}>
@@ -44,16 +61,11 @@ export function TaskCard({ assignment, checkIn, onComplete, completing }: TaskCa
         </Pressable>
       </View>
 
-      {pillar && (
-        <View style={styles.tagWrap}>
-          <Image
-            source={require('@/assets/images/home/tag-background.png')}
-            style={StyleSheet.absoluteFill}
-            resizeMode="stretch"
-          />
-          <ThemedText type="small" style={styles.tagText}>
-            {pillar.label}
-          </ThemedText>
+      {(emotion || pillar || energy) && (
+        <View style={styles.tagRow}>
+          {emotion && <Tag label={emotion.label} />}
+          {pillar && <Tag label={`Pillar: ${pillar.label}`} />}
+          {energy && <Tag label={`${energy.label} Energy`} />}
         </View>
       )}
 
@@ -82,8 +94,12 @@ const styles = StyleSheet.create({
     width: 27,
     height: 27,
   },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
   tagWrap: {
-    alignSelf: 'flex-start',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Spacing.five,

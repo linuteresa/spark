@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { Button } from '@/components/ui/button';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { HomeTheme } from '@/constants/palette';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
@@ -50,7 +50,8 @@ export function SignInScreen() {
           <ThemedText type="smallBold" style={styles.cardHeading}>
             SPARK LOG-IN
           </ThemedText>
-          <Button label="Sign in with Google" onPress={handlePress} loading={submitting} color={HomeTheme.accent} />
+          <View style={[styles.headingUnderline, { backgroundColor: HomeTheme.accent }]} />
+          <GoogleSignInButton onPress={handlePress} loading={submitting} />
           {error && <ThemedText style={styles.error}>{error}</ThemedText>}
         </View>
       )}
@@ -112,6 +113,12 @@ const styles = StyleSheet.create({
   },
   cardHeading: {
     textAlign: 'center',
+  },
+  headingUnderline: {
+    alignSelf: 'center',
+    width: 32,
+    height: 3,
+    borderRadius: 2,
     marginBottom: Spacing.one,
   },
   error: {
