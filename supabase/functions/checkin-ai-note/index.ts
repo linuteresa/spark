@@ -16,7 +16,6 @@ const ENERGY_LABELS: Record<number, string> = { 1: 'low', 2: 'medium', 3: 'high'
 
 interface CheckInPayload {
   emotion: string;
-  intensity: number;
   energy_level: number;
   pillar: string;
   substressor_code: string;
@@ -96,7 +95,6 @@ Deno.serve(async (req) => {
   const { data: rpcData, error: rpcError } = await userClient
     .rpc('submit_check_in_and_assign', {
       p_emotion: payload.emotion,
-      p_intensity: payload.intensity,
       p_energy_level: payload.energy_level,
       p_pillar: payload.pillar,
       p_substressor_code: payload.substressor_code,
