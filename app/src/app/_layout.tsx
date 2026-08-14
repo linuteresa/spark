@@ -1,5 +1,5 @@
-import { DarkTheme, DefaultTheme, Slot, ThemeProvider } from 'expo-router';
-import { ActivityIndicator, StyleSheet, useColorScheme } from 'react-native';
+import { DefaultTheme, Slot, ThemeProvider } from 'expo-router';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 
 import { SignInScreen } from '@/components/sign-in-screen';
 import { ThemedView } from '@/components/themed-view';
@@ -24,9 +24,8 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <AuthProvider>
         <RootNavigator />
       </AuthProvider>

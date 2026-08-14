@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { SelectableOption } from '@/components/check-in/selectable-option';
+import { StepActions } from '@/components/check-in/step-actions';
 import { ThemedText } from '@/components/themed-text';
-import { Button } from '@/components/ui/button';
 import { Spacing } from '@/constants/theme';
 import { ENERGY_LEVELS, type EnergyLevel } from '@/lib/types';
 
@@ -26,21 +27,16 @@ export function EnergyStep({ value, onChange, onNext, onBack }: EnergyStepProps)
       </ThemedText>
 
       {ENERGY_LEVELS.map((level) => (
-        <Pressable
+        <SelectableOption
           key={level.value}
+          label={`${level.label} Energy`}
+          description={DESCRIPTIONS[level.value]}
+          selected={value === level.value}
           onPress={() => onChange(level.value)}
-          style={[styles.card, value === level.value ? styles.cardSelected : styles.cardIdle]}>
-          <ThemedText type="smallBold">{level.label} Energy</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {DESCRIPTIONS[level.value]}
-          </ThemedText>
-        </Pressable>
+        />
       ))}
 
-      <View style={styles.actions}>
-        <Button label="Back" onPress={onBack} variant="outline" style={styles.flexButton} />
-        <Button label="Continue" onPress={onNext} disabled={!value} style={styles.flexButton} />
-      </View>
+      <StepActions onBack={onBack} onNext={onNext} nextDisabled={!value} />
     </View>
   );
 }
@@ -52,27 +48,5 @@ const styles = StyleSheet.create({
   heading: {
     textAlign: 'center',
     marginBottom: Spacing.two,
-  },
-  card: {
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
-    gap: Spacing.half,
-    borderWidth: 2,
-  },
-  cardIdle: {
-    backgroundColor: '#F5F6F8',
-    borderColor: 'transparent',
-  },
-  cardSelected: {
-    backgroundColor: '#EAF1FE',
-    borderColor: '#5B8DEF',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.three,
-    marginTop: Spacing.three,
-  },
-  flexButton: {
-    flex: 1,
   },
 });

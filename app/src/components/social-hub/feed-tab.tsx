@@ -84,9 +84,7 @@ export const FeedTab = forwardRef<FeedTabHandle>(function FeedTab(_props, ref) {
   const [body, setBody] = useState('');
   const [posting, setPosting] = useState(false);
 
-  async function loadExtrasFor(list: FeedPost[], mode: 'replace' | 'merge') {
-    if (list.length === 0) return;
-    const postIds = list.map((p) => p.id);
+  async function fetchExtras(postIds: string[]) {
     const [{ data: reactionData }, { data: commentData }] = await Promise.all([
       supabase.from('feed_reaction').select('*').in('post_id', postIds),
       supabase
@@ -96,41 +94,44 @@ export const FeedTab = forwardRef<FeedTabHandle>(function FeedTab(_props, ref) {
         .order('created_at', { ascending: true }),
     ]);
 
-    const groupedReactions: Record<string, FeedReaction[]> = {};
+    const reactions: Record<string, FeedReaction[]> = {};
     for (const r of (reactionData as FeedReaction[]) ?? []) {
-      groupedReactions[r.post_id] = groupedReactions[r.post_id] ? [...groupedReactions[r.post_id], r] : [r];
+      reactions[r.post_id] = reactions[r.post_id] ? [...reactions[r.post_id], r] : [r];
     }
-    setReactionsByPost((prev) => (mode === 'merge' ? { ...prev, ...groupedReactions } : groupedReactions));
 
-    const groupedComments: Record<string, FeedComment[]> = {};
+    const comments: Record<string, FeedComment[]> = {};
     for (const c of (commentData as FeedComment[]) ?? []) {
-      groupedComments[c.post_id] = groupedComments[c.post_id] ? [...groupedComments[c.post_id], c] : [c];
+      comments[c.post_id] = comments[c.post_id] ? [...comments[c.post_id], c] : [c];
     }
-    setCommentsByPost((prev) => (mode === 'merge' ? { ...prev, ...groupedComments } : groupedComments));
+
+    return { reactions, comments };
+  }
+
+  async function loadExtrasFor(list: FeedPost[], mode: 'replace' | 'merge') {
+    if (list.length === 0) return;
+    const { reactions, comments } = await fetchExtras(list.map((p) => p.id));
+    setReactionsByPost((prev) => (mode === 'merge' ? { ...prev, ...reactions } : reactions));
+    setCommentsByPost((prev) => (mode === 'merge' ? { ...prev, ...comments } : comments));
   }
 
   async function refreshExtrasFor(postId: string) {
-    const [{ data: reactionData }, { data: commentData }] = await Promise.all([
-      supabase.from('feed_reaction').select('*').eq('post_id', postId),
-      supabase
-        .from('feed_comment')
-        .select('*, profiles(display_name, email)')
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true }),
-    ]);
-    setReactionsByPost((prev) => ({ ...prev, [postId]: (reactionData as FeedReaction[]) ?? [] }));
-    setCommentsByPost((prev) => ({ ...prev, [postId]: (commentData as FeedComment[]) ?? [] }));
+    const { reactions, comments } = await fetchExtras([postId]);
+    setReactionsByPost((prev) => ({ ...prev, [postId]: reactions[postId] ?? [] }));
+    setCommentsByPost((prev) => ({ ...prev, [postId]: comments[postId] ?? [] }));
+  }
+
+  async function fetchPosts(from: number, to: number) {
+    const { data } = await supabase
+      .from('feed_post')
+      .select('*, profiles(display_name, email)')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    return (data as FeedPost[]) ?? [];
   }
 
   async function load(silent = false) {
     if (!silent) setLoading(true);
-    const { data: postData } = await supabase
-      .from('feed_post')
-      .select('*, profiles(display_name, email)')
-      .order('created_at', { ascending: false })
-      .range(0, PAGE_SIZE - 1);
-
-    const list = (postData as FeedPost[]) ?? [];
+    const list = await fetchPosts(0, PAGE_SIZE - 1);
     setPosts(list);
     setHasMore(list.length === PAGE_SIZE);
     await loadExtrasFor(list, 'replace');
@@ -144,13 +145,7 @@ export const FeedTab = forwardRef<FeedTabHandle>(function FeedTab(_props, ref) {
   async function loadMore() {
     if (!hasMore || loadingMore) return;
     setLoadingMore(true);
-    const { data: postData } = await supabase
-      .from('feed_post')
-      .select('*, profiles(display_name, email)')
-      .order('created_at', { ascending: false })
-      .range(posts.length, posts.length + PAGE_SIZE - 1);
-
-    const list = (postData as FeedPost[]) ?? [];
+    const list = await fetchPosts(posts.length, posts.length + PAGE_SIZE - 1);
     setPosts((prev) => [...prev, ...list]);
     setHasMore(list.length === PAGE_SIZE);
     await loadExtrasFor(list, 'merge');
