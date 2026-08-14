@@ -23,11 +23,11 @@ function Tag({ label }: { label: string }) {
 interface TaskCardProps {
   assignment: ChallengeAssignment | null;
   checkIn: CheckIn | null;
-  onComplete: () => void;
+  onToggle: () => void;
   completing: boolean;
 }
 
-export function TaskCard({ assignment, checkIn, onComplete, completing }: TaskCardProps) {
+export function TaskCard({ assignment, checkIn, onToggle, completing }: TaskCardProps) {
   if (!assignment || !assignment.action_matrix) {
     return (
       <View style={[styles.container, { backgroundColor: HomeTheme.card }]}>
@@ -48,7 +48,7 @@ export function TaskCard({ assignment, checkIn, onComplete, completing }: TaskCa
     <View style={[styles.container, { backgroundColor: HomeTheme.card }]}>
       <View style={styles.headerRow}>
         <ThemedText type="smallBold">{isDone ? "Today's task, done!" : "Let's finish your task!"}</ThemedText>
-        <Pressable onPress={onComplete} disabled={isDone || completing} hitSlop={8}>
+        <Pressable onPress={onToggle} disabled={completing} hitSlop={8}>
           <Image
             source={
               isDone
@@ -98,12 +98,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
+    marginBottom: Spacing.one,
   },
   tagWrap: {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Spacing.five,
     overflow: 'hidden',
+    flexShrink: 1,
   },
   tagText: {
     paddingHorizontal: Spacing.two,

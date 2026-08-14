@@ -10,9 +10,9 @@ import { EMOTIONS, type Emotion } from '@/lib/types';
 const WHEEL_WIDTH = 320;
 const WHEEL_HEIGHT = WHEEL_WIDTH * (233 / 453);
 const RADIUS = WHEEL_WIDTH / 2;
-const ICON_ARC_RADIUS = RADIUS * 0.78;
-const ICON_SIZE = 40;
-const ICON_SIZE_SELECTED = 48;
+const ICON_ARC_RADIUS = RADIUS * 0.82;
+const ICON_SIZE = 48;
+const ICON_SIZE_SELECTED = 56;
 const KNOB_SIZE = 28;
 
 function angleForIndex(index: number, total: number) {

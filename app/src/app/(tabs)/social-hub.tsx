@@ -29,6 +29,10 @@ export default function SocialHubScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={SocialTheme.accent} />
         ) : undefined
       }>
+      <ThemedText type="title" style={{ color: SocialTheme.text }}>
+        SOCIAL HUB
+      </ThemedText>
+
       <View style={styles.toggleRow}>
         <Pressable
           onPress={() => setView('feed')}
