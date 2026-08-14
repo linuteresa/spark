@@ -88,17 +88,16 @@ export default function HomeScreen() {
     }
   }, [loading, assignment, promptDismissed]);
 
-  async function completeTask() {
+  async function toggleTask() {
     if (!assignment) return;
     setCompleting(true);
     try {
-      const { error: rpcError } = await supabase.rpc('complete_assignment', {
-        p_assignment_id: assignment.id,
-      });
+      const rpcName = assignment.completed_at ? 'uncomplete_assignment' : 'complete_assignment';
+      const { error: rpcError } = await supabase.rpc(rpcName, { p_assignment_id: assignment.id });
       if (rpcError) throw rpcError;
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not complete task.');
+      setError(e instanceof Error ? e.message : 'Could not update task.');
     } finally {
       setCompleting(false);
     }
@@ -120,7 +119,7 @@ export default function HomeScreen() {
           <TaskCard
             assignment={assignment}
             checkIn={latestCheckIn}
-            onComplete={completeTask}
+            onToggle={toggleTask}
             completing={completing}
           />
         </>

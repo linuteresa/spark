@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
+import { WaveBackground } from '@/components/ui/wave-background';
 import { HomeTheme } from '@/constants/palette';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
@@ -56,11 +57,7 @@ export function SignInScreen() {
         </View>
       )}
 
-      <Image
-        source={require('@/assets/images/login/cloud-background.png')}
-        style={styles.cloudBackground}
-        resizeMode="cover"
-      />
+      <WaveBackground style={styles.cloudBackground} />
     </SafeAreaView>
   );
 }

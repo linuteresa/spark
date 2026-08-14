@@ -24,7 +24,6 @@ function CreateEventForm({ onDone }: { onDone: () => void }) {
   const [title, setTitle] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [about, setAbout] = useState('');
-  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +38,6 @@ function CreateEventForm({ onDone }: { onDone: () => void }) {
         kind,
         title: title.trim(),
         about: about.trim() || null,
-        notes: notes.trim() || null,
         event_date: eventDate.trim(),
       });
       if (insertError) throw insertError;
@@ -75,13 +73,6 @@ function CreateEventForm({ onDone }: { onDone: () => void }) {
         value={about}
         onChangeText={setAbout}
         placeholder="What's this about?"
-        multiline
-        style={[styles.input, styles.textArea]}
-      />
-      <TextInput
-        value={notes}
-        onChangeText={setNotes}
-        placeholder="Additional notes (optional)"
         multiline
         style={[styles.input, styles.textArea]}
       />
