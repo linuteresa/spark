@@ -1,6 +1,8 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
+import { CheckInPrompt } from '@/components/home/check-in-prompt';
 import { HeaderBanner } from '@/components/home/header-banner';
 import { PointsCard } from '@/components/home/points-card';
 import { TaskCard } from '@/components/home/task-card';
@@ -16,6 +18,7 @@ function startOfToday(): string {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { session } = useAuth();
   const [latestCheckIn, setLatestCheckIn] = useState<CheckIn | null>(null);
   const [streak, setStreak] = useState<Streak | null>(null);
@@ -24,6 +27,8 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCheckInPrompt, setShowCheckInPrompt] = useState(false);
+  const [promptDismissed, setPromptDismissed] = useState(false);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -77,6 +82,12 @@ export default function HomeScreen() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!loading && !assignment && !promptDismissed) {
+      setShowCheckInPrompt(true);
+    }
+  }, [loading, assignment, promptDismissed]);
+
   async function completeTask() {
     if (!assignment) return;
     setCompleting(true);
@@ -102,9 +113,27 @@ export default function HomeScreen() {
         <>
           <HeaderBanner emotion={latestCheckIn?.emotion ?? null} streakDays={streak?.current_count ?? 0} />
           <PointsCard pointsToday={pointsToday} />
-          <TaskCard assignment={assignment} onComplete={completeTask} completing={completing} />
+          <TaskCard
+            assignment={assignment}
+            checkIn={latestCheckIn}
+            onComplete={completeTask}
+            completing={completing}
+          />
         </>
       )}
+
+      <CheckInPrompt
+        visible={showCheckInPrompt}
+        onCheckIn={() => {
+          setShowCheckInPrompt(false);
+          setPromptDismissed(true);
+          router.push('/(tabs)/check-in');
+        }}
+        onDismiss={() => {
+          setShowCheckInPrompt(false);
+          setPromptDismissed(true);
+        }}
+      />
     </ScreenContainer>
   );
 }

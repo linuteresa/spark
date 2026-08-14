@@ -1,9 +1,8 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 
 import { EmotionCharacter } from '@/components/emotions/emotion-character';
 import { ThemedText } from '@/components/themed-text';
-import { Button } from '@/components/ui/button';
 import { HomeTheme } from '@/constants/palette';
 import { Spacing } from '@/constants/theme';
 import type { Emotion } from '@/lib/types';
@@ -20,7 +19,16 @@ export function HeaderBanner({ emotion, streakDays }: HeaderBannerProps) {
     <View style={[styles.container, { backgroundColor: HomeTheme.card }]}>
       <View style={styles.row}>
         <View style={styles.moodBlock}>
-          {emotion ? <EmotionCharacter emotion={emotion} size={56} /> : null}
+          {emotion ? (
+            <>
+              <EmotionCharacter emotion={emotion} size={56} />
+              <Image
+                source={require('@/assets/images/home/character-shadow.png')}
+                style={styles.shadow}
+                resizeMode="contain"
+              />
+            </>
+          ) : null}
           <ThemedText type="small" themeColor="textSecondary">
             {emotion ? 'Today' : 'No check-in yet'}
           </ThemedText>
@@ -32,12 +40,18 @@ export function HeaderBanner({ emotion, streakDays }: HeaderBannerProps) {
         </View>
       </View>
 
-      <Button
-        label="Let's Recharge!"
-        onPress={() => router.push('/(tabs)/recharge')}
-        color={HomeTheme.accent}
-        style={styles.button}
-      />
+      <ImageBackground
+        source={require('@/assets/images/home/recharge-illustration.png')}
+        style={styles.rechargeBanner}
+        imageStyle={styles.rechargeBannerImage}>
+        <Pressable onPress={() => router.push('/(tabs)/recharge')}>
+          <Image
+            source={require('@/assets/images/home/recharge-button.png')}
+            style={styles.rechargeButton}
+            resizeMode="contain"
+          />
+        </Pressable>
+      </ImageBackground>
     </View>
   );
 }
@@ -57,12 +71,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.half,
   },
+  shadow: {
+    width: 40,
+    height: 4,
+    marginTop: -4,
+  },
   streakPill: {
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.five,
   },
-  button: {
-    alignSelf: 'stretch',
+  rechargeBanner: {
+    height: 100,
+    borderRadius: Spacing.three,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  rechargeBannerImage: {
+    borderRadius: Spacing.three,
+  },
+  rechargeButton: {
+    width: 180,
+    height: 51,
   },
 });

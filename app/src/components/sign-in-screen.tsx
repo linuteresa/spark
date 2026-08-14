@@ -1,24 +1,12 @@
 import { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { HomeTheme } from '@/constants/palette';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
-
-function WaveBackground() {
-  return (
-    <Svg width="100%" height={220} viewBox="0 0 400 220" style={styles.wave} preserveAspectRatio="none">
-      <Path
-        d="M0,80 C100,140 300,20 400,80 L400,220 L0,220 Z"
-        fill={HomeTheme.accentSoft}
-      />
-    </Svg>
-  );
-}
 
 export function SignInScreen() {
   const { signInWithGoogle, error } = useAuth();
@@ -37,7 +25,7 @@ export function SignInScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.hero}>
-        <Image source={require('@/assets/images/spark-logo.png')} style={styles.logo} resizeMode="contain" />
+        <Image source={require('@/assets/images/login/spark-logo.png')} style={styles.logo} resizeMode="contain" />
         <ThemedText type="title" style={{ color: HomeTheme.accent }}>
           SPARK
         </ThemedText>
@@ -51,9 +39,11 @@ export function SignInScreen() {
 
       {!showLogin ? (
         <Pressable onPress={() => setShowLogin(true)} style={styles.getStartedButton}>
-          <ThemedText type="smallBold" themeColor="background">
-            Get Started
-          </ThemedText>
+          <Image
+            source={require('@/assets/images/login/get-started-button.png')}
+            style={styles.getStartedImage}
+            resizeMode="contain"
+          />
         </Pressable>
       ) : (
         <View style={styles.loginCard}>
@@ -69,9 +59,11 @@ export function SignInScreen() {
         </View>
       )}
 
-      <View style={styles.waveContainer}>
-        <WaveBackground />
-      </View>
+      <Image
+        source={require('@/assets/images/login/cloud-background.png')}
+        style={styles.cloudBackground}
+        resizeMode="cover"
+      />
     </SafeAreaView>
   );
 }
@@ -102,12 +94,12 @@ const styles = StyleSheet.create({
   },
   getStartedButton: {
     alignSelf: 'center',
-    backgroundColor: HomeTheme.accent,
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.six,
-    borderRadius: Spacing.five,
     marginBottom: Spacing.six,
     zIndex: 1,
+  },
+  getStartedImage: {
+    width: 180,
+    height: 52,
   },
   loginCard: {
     backgroundColor: '#FFFFFF',
@@ -133,14 +125,13 @@ const styles = StyleSheet.create({
     color: '#cf222e',
     textAlign: 'center',
   },
-  waveContainer: {
+  cloudBackground: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    zIndex: -1,
-  },
-  wave: {
     width: '100%',
+    height: 260,
+    zIndex: -1,
   },
 });
