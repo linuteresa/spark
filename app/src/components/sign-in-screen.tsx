@@ -61,10 +61,6 @@ export function SignInScreen() {
             SPARK LOG-IN
           </ThemedText>
           <Button label="Sign in with Google" onPress={handlePress} loading={submitting} color={HomeTheme.accent} />
-          <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>
-            UMD students only, for now — sign in with your @umd.edu, @terpmail.umd.edu, or @gmail.com
-            account.
-          </ThemedText>
           {error && <ThemedText style={styles.error}>{error}</ThemedText>}
         </View>
       )}
@@ -125,9 +121,6 @@ const styles = StyleSheet.create({
   cardHeading: {
     textAlign: 'center',
     marginBottom: Spacing.one,
-  },
-  hint: {
-    textAlign: 'center',
   },
   error: {
     color: '#cf222e',
