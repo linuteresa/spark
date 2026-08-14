@@ -112,8 +112,8 @@ insert into user_focus (user_id, focus_area_id, weight, source) values
 
 -- Full-loop demo data for Amara: a check-in routed to an assignment she
 -- has already completed and reflected on, so Points & Streak has data to show.
-insert into check_in (user_id, emotion, intensity, context) values
-  ('11111111-1111-1111-1111-111111111111', 'anxious', 3, 'class');
+insert into check_in (user_id, emotion, context) values
+  ('11111111-1111-1111-1111-111111111111', 'anxious', 'class');
 
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 

@@ -28,7 +28,6 @@ export interface CheckIn {
   id: string;
   user_id: string;
   emotion: Emotion;
-  intensity: number;
   context: string | null;
   energy_level: EnergyLevel | null;
   pillar: Pillar | null;

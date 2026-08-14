@@ -32,7 +32,6 @@ export default function CheckInScreen() {
       const { error: fnError } = await supabase.functions.invoke('checkin-ai-note', {
         body: {
           emotion,
-          intensity: energyLevel,
           energy_level: energyLevel,
           pillar,
           substressor_code: substressorCode,
