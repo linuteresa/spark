@@ -10,7 +10,7 @@ import type { Session } from '@supabase/supabase-js';
 
 WebBrowser.maybeCompleteAuthSession();
 
-function resolveSchoolDomain(email: string): string | null {
+export function resolveSchoolDomain(email: string): string | null {
   const normalized = email.toLowerCase();
   if (/@([a-z0-9-]+\.)*umd\.edu$/.test(normalized)) return 'umd.edu';
   if (normalized.endsWith('@gmail.com')) return 'umd.edu';
