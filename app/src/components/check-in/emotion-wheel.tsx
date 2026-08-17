@@ -15,11 +15,11 @@ const ICON_SIZE = 48;
 const ICON_SIZE_SELECTED = 56;
 const KNOB_SIZE = 28;
 
-function angleForIndex(index: number, total: number) {
+export function angleForIndex(index: number, total: number) {
   return 180 - (index + 0.5) * (180 / total);
 }
 
-function indexForAngle(angleDeg: number, total: number) {
+export function indexForAngle(angleDeg: number, total: number) {
   const clamped = Math.max(0, Math.min(180, angleDeg));
   const index = Math.floor((180 - clamped) / (180 / total));
   return Math.max(0, Math.min(total - 1, index));
@@ -96,7 +96,12 @@ export function EmotionWheel({ value, onChange }: EmotionWheelProps) {
           const size = isSelected ? ICON_SIZE_SELECTED : ICON_SIZE;
           const pos = positionFor(angleDeg, ICON_ARC_RADIUS, size);
           return (
-            <Pressable key={e.value} onPress={() => onChange(e.value)} style={[styles.iconSlot, pos]} hitSlop={8}>
+            <Pressable
+              key={e.value}
+              onPress={() => onChange(e.value)}
+              style={[styles.iconSlot, pos]}
+              hitSlop={8}
+              testID={`emotion-icon-${e.value}`}>
               <EmotionCharacter emotion={e.value} size={size} />
             </Pressable>
           );

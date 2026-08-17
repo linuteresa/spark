@@ -6,13 +6,21 @@ interface CircleArrowButtonProps {
   disabled?: boolean;
   color?: string;
   size?: number;
+  testID?: string;
 }
 
-export function CircleArrowButton({ onPress, disabled, color = '#5B8DEF', size = 56 }: CircleArrowButtonProps) {
+export function CircleArrowButton({
+  onPress,
+  disabled,
+  color = '#5B8DEF',
+  size = 56,
+  testID,
+}: CircleArrowButtonProps) {
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      testID={testID}
       style={({ pressed }) => [
         styles.circle,
         { width: size, height: size, borderRadius: size / 2, backgroundColor: color },

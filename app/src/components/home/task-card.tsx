@@ -48,7 +48,7 @@ export function TaskCard({ assignment, checkIn, onToggle, completing }: TaskCard
     <View style={[styles.container, { backgroundColor: HomeTheme.card }]}>
       <View style={styles.headerRow}>
         <ThemedText type="smallBold">{isDone ? "Today's task, done!" : "Let's finish your task!"}</ThemedText>
-        <Pressable onPress={onToggle} disabled={completing} hitSlop={8}>
+        <Pressable onPress={onToggle} disabled={completing} hitSlop={8} testID="task-card-toggle">
           <Image
             source={
               isDone

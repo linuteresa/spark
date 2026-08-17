@@ -39,7 +39,10 @@ export function SignInScreen() {
       </View>
 
       {!showLogin ? (
-        <Pressable onPress={() => setShowLogin(true)} style={styles.getStartedButton}>
+        <Pressable
+          onPress={() => setShowLogin(true)}
+          style={styles.getStartedButton}
+          testID="get-started-button">
           <Image
             source={require('@/assets/images/login/get-started-button.png')}
             style={styles.getStartedImage}
