@@ -51,7 +51,10 @@ export function HeaderBanner({ emotion, streakDays, avatarLabel }: HeaderBannerP
         </View>
       )}
 
-      <Pressable onPress={() => router.push('/(tabs)/recharge')} style={styles.rechargeButtonWrap}>
+      <Pressable
+        onPress={() => router.push('/(tabs)/recharge')}
+        style={styles.rechargeButtonWrap}
+        testID="recharge-button">
         <Image
           source={require('@/assets/images/home/recharge-button.png')}
           style={styles.rechargeButton}

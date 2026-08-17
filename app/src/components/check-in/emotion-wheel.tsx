@@ -96,7 +96,12 @@ export function EmotionWheel({ value, onChange }: EmotionWheelProps) {
           const size = isSelected ? ICON_SIZE_SELECTED : ICON_SIZE;
           const pos = positionFor(angleDeg, ICON_ARC_RADIUS, size);
           return (
-            <Pressable key={e.value} onPress={() => onChange(e.value)} style={[styles.iconSlot, pos]} hitSlop={8}>
+            <Pressable
+              key={e.value}
+              onPress={() => onChange(e.value)}
+              style={[styles.iconSlot, pos]}
+              hitSlop={8}
+              testID={`emotion-icon-${e.value}`}>
               <EmotionCharacter emotion={e.value} size={size} />
             </Pressable>
           );
